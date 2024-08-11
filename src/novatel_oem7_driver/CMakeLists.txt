@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.0.2)
 project(novatel_oem7_driver)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++17)
 
 set(BUILD_DEPS
   nodelet
   roscpp
+  rosbag
   std_msgs
   gps_common
   sensor_msgs
@@ -87,13 +88,13 @@ add_library(${PROJECT_NAME}
    src/receiverstatus_handler.cpp
    src/nmea_handler.cpp
    src/oem7_imu.cpp
+   src/replayer.cpp
+   src/replayer_utils.cpp
 )
 
 message("Linking to EDIE at: '${CMAKE_BINARY_DIR}'")
 
-
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 
 target_link_libraries(${PROJECT_NAME}
    Boost::boost
@@ -107,6 +108,18 @@ target_link_libraries(${PROJECT_NAME}
 
 add_dependencies(${PROJECT_NAME} ${OEM7_DECODER})
 
+add_executable(cpt7_replay_node
+  src/replay_node.cpp)
+
+target_link_libraries(cpt7_replay_node
+   Boost::boost
+   ${CMAKE_BINARY_DIR}/usr/lib/libCommon.a
+   ${CMAKE_BINARY_DIR}/usr/lib/libStreamInterface.a
+   ${CMAKE_BINARY_DIR}/usr/lib/libNovatel.a
+   ${CMAKE_BINARY_DIR}/usr/lib/libCommon.a
+   ${catkin_LIBRARIES}
+   ${PROJECT_NAME}
+  )
 
 #############
 ## Install ##
