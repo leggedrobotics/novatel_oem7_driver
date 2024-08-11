@@ -13,6 +13,7 @@ uint64_t getCurrentTime();
 uint64_t getMonotonicTime();
 uint64_t gps2Utc(uint64_t gps_week, double gps_time);
 uint64_t gps2UtcWithMiilli(uint64_t gps_time);
+double gps2UtcWithMilliDouble(double gps_time);
 int getGPSweek(const uint64_t &stamp);
 double getGPSsecond(const uint64_t &stamp);
 int setSystemTime(uint64_t time);

@@ -77,6 +77,11 @@ uint64_t gps2UtcWithMiilli(uint64_t gps_time) {
     return uint64_t(gps_time + 315964800000ULL - LEAP_SECOND * 1000ULL);
 }
 
+double gps2UtcWithMilliDouble(double gps_time) {
+    //     int gps_week;               // weeks from 1980-1-6
+    // double gps_time;            // seconds from 0:00:00 of this sunday
+    return gps_time + 315964800000.0 - 18.0 * 1000.0;
+}
 
 
 int getGPSweek(const uint64_t &stamp) {

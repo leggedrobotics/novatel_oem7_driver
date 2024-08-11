@@ -15,8 +15,6 @@
 #include "novatel_oem7_msgs/IMURATECORRIMU.h"
 #include "novatel_oem7_msgs/INSSTDEV.h"
 #include "novatel_oem7_msgs/INSCONFIG.h"
-#include "novatel_oem7_msgs/INSPVA.h"
-#include "novatel_oem7_msgs/INSPVAX.h"
 #include "novatel_oem7_msgs/TIME.h"
 #include "novatel_oem7_msgs/HEADING2.h"
 #include "novatel_oem7_msgs/BESTGNSSPOS.h"
@@ -36,6 +34,10 @@
 #include "novatel_oem7_msgs/Oem7Header.h"
 #include <novatel_oem7_driver/oem7_message_util.hpp>
 #include <oem7_driver_util.hpp>
+#include "nav_msgs/Odometry.h"
+#include "gps_common/GPSFix.h"
+#include "sensor_msgs/NavSatFix.h"
+#include "geometry_msgs/Point.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <oem7_ros_publisher.hpp>
@@ -61,7 +63,12 @@ class RosbagRangeDataProcessorRos{
    */
   void initCommonRosStuff();
 
-  bool processRosbag();
+  bool processIMURosbag();
+  bool processGNSSRosbag();
+  bool processOdometryRosbag();
+  bool associateAndWriteOdometryMsgs();
+  bool associateAndWriteIMUmsgs();
+  bool associateAndWriteGPSmsgs();
   bool createOutputDirectory();
   bool validateTopicsInRosbag(const rosbag::Bag& bag, const std::vector<std::string>& mandatoryTopics);
 
@@ -104,8 +111,22 @@ inline double gpsToRosTime(int week, int milliseconds) {
   std::string outputRosbagName_;
   std::string rosbagFullname_ ;
   std::string rosbagOutFullname_ ;
+  std::queue<sensor_msgs::Imu> rosIMUQueue_;
+  std::queue<novatel_oem7_msgs::CORRIMU> corrIMUquque_;
+
+  std::queue<sensor_msgs::NavSatFix> rosFixQueue_;
+  std::queue<gps_common::GPSFix> gpsCommonQuque_;
+
+  std::queue<novatel_oem7_msgs::INSPVA> INSPVAQueue_;
+  std::queue<nav_msgs::Odometry> odometryQuque_;
+  int64_t lastOdometryTime_ = 0;
+  int64_t lastInspvaTime_ = 0;
+  bool skipOdometry_ = false;
+  bool skipInspva_ = false;
+
   ros::Time tracker;
   int64_t totalMsec_prev = 0;
+  int64_t totalMsec = 0;
   double rosCompatibleTime_prev = 0;
 
   rosbag::Bag outBag;
