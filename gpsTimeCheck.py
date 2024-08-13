@@ -4,9 +4,10 @@ import ruamel.yaml
 
 from gps_time.core import GPSTime
 from gps_time.datetime import datetime2tow
+# pip install gps-time
 
 
-
+## Some sanity check on conversion from GPS time to UTC time
 # gps_time1 = GPSTime(2322, 309298.776)
 # # Adjust for leap seconds, 18 seconds since 2016-12-31
 # # The next possible date is June 30, 2025.
@@ -14,11 +15,6 @@ from gps_time.datetime import datetime2tow
 # # print(gps_time1)
 # print(f"Datetime: {gps_time1.to_datetime()}")
 # print(f"Datetime: {utc_time.to_datetime()}")
-
-
-
-
-
 
 
 # UTC this is not corrected

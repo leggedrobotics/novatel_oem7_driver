@@ -1,10 +1,3 @@
-/*
- * RosbagRangeDataProcessorRos.cpp
- *
- *  Created on: Apr 21, 2022
- *      Author: jelavice
- */
-
 #include "novatel_oem7_driver/replayer.hpp"
 #include <ros/ros.h>
 #include <cstdlib>
@@ -58,7 +51,6 @@ void RosbagRangeDataProcessorRos::initialize() {
 }
 
 bool RosbagRangeDataProcessorRos::createOutputDirectory() {
-  // TODO(TT) This folder is currently not used.
 
   // Check if the output folder exists.
   if (std::filesystem::is_directory(inputRosbagBasePath_)) {
@@ -118,7 +110,7 @@ bool RosbagRangeDataProcessorRos::processOdometryRosbag() {
 
   // Create me a high resolution clock timer from std chrono
   // Start the timer.
-  m_StartTime = std::chrono::steady_clock::now();
+  startTime_ = std::chrono::steady_clock::now();
 
   // Open ROS bag.
   rosbag::Bag bag;
@@ -136,7 +128,7 @@ bool RosbagRangeDataProcessorRos::processOdometryRosbag() {
   }
 
   ROS_INFO_STREAM("\033[92m"
-                  << " Here we go... "
+                  << " Here we go for Odometry Rosbag... "
                   << "\033[0m");
   const ros::WallTime first{ros::WallTime::now() + ros::WallDuration(1.0)};
   ros::WallTime::sleepUntil(first);
@@ -205,7 +197,7 @@ bool RosbagRangeDataProcessorRos::processOdometryRosbag() {
   ROS_INFO("Finished running through the bag for Odom msgs.");
   const ros::Time bag_begin_time = view.getBeginTime();
   const ros::Time bag_end_time = view.getEndTime();
-  m_EndTime = std::chrono::steady_clock::now();
+  endTime_ = std::chrono::steady_clock::now();
 
   std::cout << "Rosbag processing finished. Rosbag duration: " << (bag_end_time - bag_begin_time).toSec() << " sec."
             << " Time elapsed for processing: " << elapsedSeconds() << " sec. \n \n";
@@ -222,7 +214,7 @@ bool RosbagRangeDataProcessorRos::processGNSSRosbag() {
 
   // Create me a high resolution clock timer from std chrono
   // Start the timer.
-  m_StartTime = std::chrono::steady_clock::now();
+  startTime_ = std::chrono::steady_clock::now();
 
   // Open ROS bag.
   rosbag::Bag bag;
@@ -240,7 +232,7 @@ bool RosbagRangeDataProcessorRos::processGNSSRosbag() {
   }
 
   ROS_INFO_STREAM("\033[92m"
-                  << " Here we go... "
+                  << " Here we go for GPS Rosbag "
                   << "\033[0m");
   const ros::WallTime first{ros::WallTime::now() + ros::WallDuration(1.0)};
   ros::WallTime::sleepUntil(first);
@@ -284,15 +276,9 @@ bool RosbagRangeDataProcessorRos::processGNSSRosbag() {
     }
 
     if (messageInstance.getTopic() == "/gt_box/cpt7/gps/gps") {
-      //"/gt_box/cpt7/gps/imu"
       gps_common::GPSFix::ConstPtr message = messageInstance.instantiate<gps_common::GPSFix>();
       if (message != nullptr) {
-        // Re-write the message with the new timestamp.
-        // sensor_msgs::Imu messageOut = *message;
         gpsCommonQuque_.push(*message);
-
-        //
-
         
       } else {
         isInvalidMessageInBag = true;
@@ -315,7 +301,7 @@ bool RosbagRangeDataProcessorRos::processGNSSRosbag() {
   ROS_INFO("Finished running through the bag for GPS msgs.");
   const ros::Time bag_begin_time = view.getBeginTime();
   const ros::Time bag_end_time = view.getEndTime();
-  m_EndTime = std::chrono::steady_clock::now();
+  endTime_ = std::chrono::steady_clock::now();
 
   std::cout << "Rosbag processing finished. Rosbag duration: " << (bag_end_time - bag_begin_time).toSec() << " sec."
             << " Time elapsed for processing: " << elapsedSeconds() << " sec. \n \n";
@@ -362,6 +348,7 @@ bool RosbagRangeDataProcessorRos::associateAndWriteOdometryMsgs() {
     std::chrono::time_point<std::chrono::steady_clock, std::chrono::nanoseconds> receivedTimeodomMsg(std::chrono::nanoseconds{odomMsgtoNSEC});
     auto receivedTimeodomMsgMilliseconds = std::chrono::time_point_cast<std::chrono::milliseconds>(receivedTimeodomMsg).time_since_epoch();
 
+    // Magic Number fix TT
     if ( std::fabs( receivedTimeinspvaMsgMilliseconds.count() - receivedTimeodomMsgMilliseconds.count()) > 8) {
       // ROS_WARN("Time difference between the two messages is too large. Checking association.");
       // The time difference is this
@@ -382,12 +369,10 @@ bool RosbagRangeDataProcessorRos::associateAndWriteOdometryMsgs() {
       }
 
       if (receivedTimeinspvaMsgMilliseconds.count() > receivedTimeodomMsgMilliseconds.count()) {
-
-
+        // Magic Number fix TT
         if ( ((inspvaMsgtoNSEC - lastInspvaTime_ / 1000000.0) > 30) ) {
           // INSPVA msg is ahead of odom msg. We need to pop the odom msg.
           std::cout << "inspva msg is ahead of odom msg. We need to pop the odom msg." << std::endl;
-
 
           skipInspva_ = true;
         }
@@ -603,7 +588,7 @@ bool RosbagRangeDataProcessorRos::processIMURosbag() {
 
   // Create me a high resolution clock timer from std chrono
   // Start the timer.
-  m_StartTime = std::chrono::steady_clock::now();
+  startTime_ = std::chrono::steady_clock::now();
 
   // Open ROS bag.
   rosbag::Bag bag;
@@ -621,7 +606,7 @@ bool RosbagRangeDataProcessorRos::processIMURosbag() {
   }
 
   ROS_INFO_STREAM("\033[92m"
-                  << " Here we go... "
+                  << " Here we go for IMU Rosbag "
                   << "\033[0m");
   const ros::WallTime first{ros::WallTime::now() + ros::WallDuration(1.0)};
   ros::WallTime::sleepUntil(first);
@@ -647,9 +632,7 @@ bool RosbagRangeDataProcessorRos::processIMURosbag() {
       wallStampLastIteration = ros::WallTime::now();
     }
 
-    // Tf static.
     if (messageInstance.getTopic() == "/gt_box/cpt7/corrimu") {
-      //"/gt_box/cpt7/corrimu"
       novatel_oem7_msgs::CORRIMU::ConstPtr message = messageInstance.instantiate<novatel_oem7_msgs::CORRIMU>();
       if (message != nullptr) {
 
@@ -666,13 +649,9 @@ bool RosbagRangeDataProcessorRos::processIMURosbag() {
     }
 
     if (messageInstance.getTopic() == "/gt_box/cpt7/gps/imu") {
-      //"/gt_box/cpt7/gps/imu"
       sensor_msgs::Imu::ConstPtr message = messageInstance.instantiate<sensor_msgs::Imu>();
       if (message != nullptr) {
-        // Re-write the message with the new timestamp.
-        // sensor_msgs::Imu messageOut = *message;
         rosIMUQueue_.push(*message);
-
         
       } else {
         isInvalidMessageInBag = true;
@@ -695,7 +674,7 @@ bool RosbagRangeDataProcessorRos::processIMURosbag() {
   ROS_INFO("Finished running through the bag for IMU msgs.");
   const ros::Time bag_begin_time = view.getBeginTime();
   const ros::Time bag_end_time = view.getEndTime();
-  m_EndTime = std::chrono::steady_clock::now();
+  endTime_ = std::chrono::steady_clock::now();
 
   std::cout << "Rosbag processing finished. Rosbag duration: " << (bag_end_time - bag_begin_time).toSec() << " sec."
             << " Time elapsed for processing: " << elapsedSeconds() << " sec. \n \n";

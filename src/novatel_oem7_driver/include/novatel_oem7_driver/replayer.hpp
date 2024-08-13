@@ -5,9 +5,7 @@
 #include <rosbag/view.h>
 #include <rosbag/bag.h>
 #include <novatel_oem7_driver/oem7_ros_messages.hpp>
-#include <novatel_oem7_msgs/HEADING2.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <novatel_oem7_driver/oem7_ros_messages.hpp>
 #include <novatel_oem7_driver/oem7_messages.h>
 #include <novatel_oem7_driver/oem7_imu.hpp>
 #include "sensor_msgs/Imu.h"
@@ -26,10 +24,7 @@
 #include "novatel_oem7_msgs/TERRASTARSTATUS.h"
 #include "novatel_oem7_msgs/INSPVA.h"
 #include "novatel_oem7_msgs/INSPVAX.h"
-#include "novatel_oem7_msgs/INSCONFIG.h"
-#include "novatel_oem7_msgs/INSSTDEV.h"
 #include "novatel_oem7_msgs/RXSTATUS.h"
-#include "novatel_oem7_msgs/TIME.h"
 #include <stdint.h>
 #include "novatel_oem7_msgs/Oem7Header.h"
 #include <novatel_oem7_driver/oem7_message_util.hpp>
@@ -38,16 +33,11 @@
 #include "gps_common/GPSFix.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Point.h"
-
 #include <boost/scoped_ptr.hpp>
 #include <oem7_ros_publisher.hpp>
-
 #include <math.h>
 #include <map>
 #include <chrono>
-
-#include <oem7_ros_publisher.hpp>
-
 
 namespace novatel_oem7_driver {
 
@@ -57,10 +47,6 @@ class RosbagRangeDataProcessorRos{
   ~RosbagRangeDataProcessorRos() = default;
 
   void initialize();
-  /*!
-   * @brief Run sequential SLAM.
-   * @return true If successful, false otherwise.
-   */
   void initCommonRosStuff();
 
   bool processIMURosbag();
@@ -71,9 +57,6 @@ class RosbagRangeDataProcessorRos{
   bool associateAndWriteGPSmsgs();
   bool createOutputDirectory();
   bool validateTopicsInRosbag(const rosbag::Bag& bag, const std::vector<std::string>& mandatoryTopics);
-
-  std::tuple<ros::WallDuration, ros::WallDuration, ros::WallDuration> usePairForRegistration();
-
 
 inline double gpsToRosTime(int week, int milliseconds) {
   // Step 1: Calculate total GPS time in seconds since the GPS epoch
@@ -91,7 +74,7 @@ inline double gpsToRosTime(int week, int milliseconds) {
 
   inline double elapsedMilliseconds()
   {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(endTime_ - startTime_).count();
   }
   
   inline double elapsedSeconds()
@@ -133,8 +116,8 @@ inline double gpsToRosTime(int week, int milliseconds) {
   // rosbag::Bag inputBag;
   ros::NodeHandlePtr nh_;
 
-  std::chrono::time_point<std::chrono::steady_clock> m_StartTime;
-  std::chrono::time_point<std::chrono::steady_clock> m_EndTime;
+  std::chrono::time_point<std::chrono::steady_clock> startTime_;
+  std::chrono::time_point<std::chrono::steady_clock> endTime_;
 
 };
 
