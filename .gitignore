@@ -15,3 +15,5 @@ src/CMakeLists.txt
 *.ddeb
 debian
 obj-*
+.vscode
+src/novatel_oem7_driver/data/
