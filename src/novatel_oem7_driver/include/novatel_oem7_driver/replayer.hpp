@@ -48,7 +48,6 @@ class RosbagRangeDataProcessorRos{
 
   void initialize();
   void initCommonRosStuff();
-
   bool processIMURosbag();
   bool processGNSSRosbag();
   bool processOdometryRosbag();
@@ -57,20 +56,6 @@ class RosbagRangeDataProcessorRos{
   bool associateAndWriteGPSmsgs();
   bool createOutputDirectory();
   bool validateTopicsInRosbag(const rosbag::Bag& bag, const std::vector<std::string>& mandatoryTopics);
-
-inline double gpsToRosTime(int week, int milliseconds) {
-  // Step 1: Calculate total GPS time in seconds since the GPS epoch
-  double gps_time_seconds = week * SECONDS_IN_WEEK + milliseconds / 1000.0;
-
-  // Step 2: Adjust GPS time to UTC by subtracting the leap seconds
-  double utc_time_seconds = gps_time_seconds - LEAP_SECONDS;
-
-  // Step 3: Convert UTC time to ROS (Unix) time by adding the difference between Unix and GPS epochs
-  double ros_time_seconds = utc_time_seconds + GPS_EPOCH_UNIX;
-
-  return ros_time_seconds;
-}
-
 
   inline double elapsedMilliseconds()
   {
@@ -113,7 +98,6 @@ inline double gpsToRosTime(int week, int milliseconds) {
   double rosCompatibleTime_prev = 0;
 
   rosbag::Bag outBag;
-  // rosbag::Bag inputBag;
   ros::NodeHandlePtr nh_;
 
   std::chrono::time_point<std::chrono::steady_clock> startTime_;
