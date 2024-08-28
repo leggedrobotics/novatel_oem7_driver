@@ -16,6 +16,7 @@ set(BUILD_DEPS
   tf2_geometry_msgs
   message_generation
   novatel_oem7_msgs
+  tf
 )
 
 

@@ -49,6 +49,7 @@ class RosbagRangeDataProcessorRos{
   void initialize();
   void initCommonRosStuff();
   bool processIMURosbag();
+  void run();
   bool processGNSSRosbag();
   bool processOdometryRosbag();
   bool associateAndWriteOdometryMsgs();
@@ -87,10 +88,31 @@ class RosbagRangeDataProcessorRos{
 
   std::queue<novatel_oem7_msgs::INSPVA> INSPVAQueue_;
   std::queue<nav_msgs::Odometry> odometryQuque_;
-  int64_t lastOdometryTime_ = 0;
-  int64_t lastInspvaTime_ = 0;
+
+  ros::Time lastOdometryTime_ = ros::Time(0);
+  ros::Time lastInspvaTime_ = ros::Time(0);
   bool skipOdometry_ = false;
   bool skipInspva_ = false;
+
+  bool skipROSIMU_ = false;
+  bool skipCorrIMU_ = false;
+  ros::Time lastIMUmsgsTime_ = ros::Time(0);
+  ros::Time lastcorrIMUTime_ = ros::Time(0);
+
+  bool skipGpsFix_ = false;
+  bool skipGPSCommon_ = false;
+  ros::Time lastFixmsgsTime_ = ros::Time(0);
+  ros::Time lastGPSCommonTime_ = ros::Time(0);
+
+
+  uint64_t prevSeqRosIMU_ = 0;
+  uint64_t prevSeqCorrIMU_ = 0;
+
+  uint64_t prevSeqGpsCommon_ = 0;
+  uint64_t prevSeqNavsatFix_ = 0;
+
+  uint64_t prevseqOdomMsg_ = 0;
+  uint64_t prevseqINSVPAMsg_ = 0;
 
   ros::Time tracker;
   int64_t totalMsec_prev = 0;

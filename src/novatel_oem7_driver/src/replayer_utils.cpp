@@ -1,4 +1,3 @@
-#pragma once
 #include "novatel_oem7_driver/replayer_utils.hpp"
 #include <sys/time.h>
 
