@@ -2,6 +2,7 @@
 
 <!-- write an argument for launch_prefix -->
 <arg name="launch_prefix" default=""/>
+<arg name="input_bag_path" default=""/>
 
 
   <!-- Main Node -->
@@ -10,7 +11,7 @@
         launch-prefix="$(arg launch_prefix)"
         required="true">
       <param name="inputRosbagBasePath" value="$(find novatel_oem7_driver)/data/"/>
-      <param name="inputBagName" value="inputBag.bag"/>
+      <param name="inputBagPath" value="$(arg input_bag_path)"/>
       <!-- Output rosbag path parameter is depcreated. It is automatically generated as the inputbag with _post_processed.bag extension -->
       <!-- <param name="outputBagName" value="inputBag_corrected.bag"/> -->
 

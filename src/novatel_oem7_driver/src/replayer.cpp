@@ -26,10 +26,11 @@ void RosbagRangeDataProcessorRos::initialize() {
         return;
       }
   // rosbagOutFullname_ = inputRosbagBasePath_ + outputRosbagName_;
+  // Remove possibly existing output rosbag.
   std::remove(rosbagOutFullname_.c_str());
 
   if (!createOutputDirectory()) {
-    ROS_ERROR("Failed to create output directory. Exiting.");
+    ROS_ERROR("Input bag doesnt exists. Exiting.");
     return;
   }
 
@@ -79,23 +80,26 @@ void RosbagRangeDataProcessorRos::run() {
 bool RosbagRangeDataProcessorRos::createOutputDirectory() {
 
   // Check if the output folder exists.
-  if (std::filesystem::is_directory(inputRosbagBasePath_)) {
+  if (std::filesystem::exists(inputRosbagName_)) {
     return true;
+  }else{
+
+    // // If the folder doesn't exist, create it.
+    // try {
+    //   return std::filesystem::create_directories(inputRosbagName_);
+    // } catch (const std::exception& exception) {
+    //   ROS_ERROR_STREAM("Caught an exception trying to create output folder: " << exception.what());
+    // }
+
+    return false;
+
   }
 
-  // If the folder doesn't exist, create it.
-  try {
-    return std::filesystem::create_directories(inputRosbagBasePath_);
-  } catch (const std::exception& exception) {
-    ROS_ERROR_STREAM("Caught an exception trying to create output folder: " << exception.what());
-  }
-
-  return false;
 }
 
 void RosbagRangeDataProcessorRos::initCommonRosStuff() {
-  inputRosbagBasePath_ = nh_->param<std::string>("inputRosbagBasePath", "");
-  inputRosbagName_ = nh_->param<std::string>("inputBagName", "");
+  // inputRosbagBasePath_ = nh_->param<std::string>("inputRosbagBasePath", "");
+  inputRosbagName_ = nh_->param<std::string>("inputBagPath", "");
   // outputRosbagName_ = nh_->param<std::string>("outputBagName", "");
   outputRosbagName_ = inputRosbagName_;
   
