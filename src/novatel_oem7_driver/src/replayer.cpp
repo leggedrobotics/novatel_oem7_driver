@@ -37,11 +37,15 @@ void RosbagRangeDataProcessorRos::run() {
 
   // We are ready to initiatate the outbag
   outBag.open(rosbagOutFullname_, rosbag::bagmode::Write);
+  outbag.setCompression(rosbag::compression::LZ4);
   outBag_tf.open(rosbagOutFullnameTF_, rosbag::bagmode::Write);
+  outBag_tf.setCompression(rosbag::compression::LZ4);
+  
   if (!processIMURosbag())
   {
     ROS_ERROR("IMU Rosbag processing failed. Exiting.");
     outBag.close();
+    outBag_tf.close();
     return;
   }
 
@@ -49,6 +53,7 @@ void RosbagRangeDataProcessorRos::run() {
   {
     ROS_ERROR("GNSS Rosbag processing failed. Exiting.");
     outBag.close();
+    outBag_tf.close();
     return;
   }
 
@@ -56,10 +61,12 @@ void RosbagRangeDataProcessorRos::run() {
   {
     ROS_ERROR("Odometry Rosbag processing failed. Exiting.");
       outBag.close();
+      outBag_tf.close();
     return;
   }
 
   outBag.close();
+  outBag_tf.close();
 
   ROS_INFO_STREAM("\033[92m"
                 << " SUCCESSFULLY COMPLETED REPLAYING. TERMINATING MYSELF. "
