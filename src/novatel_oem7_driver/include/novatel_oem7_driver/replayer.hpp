@@ -75,11 +75,10 @@ class RosbagRangeDataProcessorRos{
   const int LEAP_SECONDS = 18;          // Difference between GPS time and UTC in seconds
 
 
-  std::string inputRosbagBasePath_;
   std::string inputRosbagName_;
   std::string outputRosbagName_;
-  std::string rosbagFullname_ ;
   std::string rosbagOutFullname_ ;
+  std::string rosbagOutFullnameTF_ ;
   std::queue<sensor_msgs::Imu> rosIMUQueue_;
   std::queue<novatel_oem7_msgs::CORRIMU> corrIMUquque_;
 
@@ -120,6 +119,7 @@ class RosbagRangeDataProcessorRos{
   double rosCompatibleTime_prev = 0;
 
   rosbag::Bag outBag;
+  rosbag::Bag outBag_tf;
   ros::NodeHandlePtr nh_;
 
   std::chrono::time_point<std::chrono::steady_clock> startTime_;

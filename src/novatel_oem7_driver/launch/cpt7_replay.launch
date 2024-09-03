@@ -10,7 +10,6 @@
         type="cpt7_replay_node" output="screen"
         launch-prefix="$(arg launch_prefix)"
         required="true">
-      <param name="inputRosbagBasePath" value="$(find novatel_oem7_driver)/data/"/>
       <param name="inputBagPath" value="$(arg input_bag_path)"/>
       <!-- Output rosbag path parameter is depcreated. It is automatically generated as the inputbag with _post_processed.bag extension -->
       <!-- <param name="outputBagName" value="inputBag_corrected.bag"/> -->

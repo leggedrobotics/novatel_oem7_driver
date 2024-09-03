@@ -18,21 +18,14 @@ RosbagRangeDataProcessorRos::RosbagRangeDataProcessorRos(ros::NodeHandlePtr nh) 
 void RosbagRangeDataProcessorRos::initialize() {
   initCommonRosStuff();
 
-  // Remove exsisting rosbag
-  rosbagFullname_ = inputRosbagBasePath_ + inputRosbagName_;
-  if (!std::filesystem::exists(rosbagFullname_))
-			{
-        ROS_ERROR("Input Rosbag does not exist. Exiting.");
-        return;
-      }
-  // rosbagOutFullname_ = inputRosbagBasePath_ + outputRosbagName_;
+  // Check if rosbag exists.
+  if (!std::filesystem::exists(inputRosbagName_))
+    {
+      ROS_ERROR("Input Rosbag does not exist. Exiting.");
+      return;
+    }
   // Remove possibly existing output rosbag.
   std::remove(rosbagOutFullname_.c_str());
-
-  if (!createOutputDirectory()) {
-    ROS_ERROR("Input bag doesnt exists. Exiting.");
-    return;
-  }
 
   // Run the processing.
   run();
@@ -44,6 +37,7 @@ void RosbagRangeDataProcessorRos::run() {
 
   // We are ready to initiatate the outbag
   outBag.open(rosbagOutFullname_, rosbag::bagmode::Write);
+  outBag_tf.open(rosbagOutFullnameTF_, rosbag::bagmode::Write);
   if (!processIMURosbag())
   {
     ROS_ERROR("IMU Rosbag processing failed. Exiting.");
@@ -98,18 +92,18 @@ bool RosbagRangeDataProcessorRos::createOutputDirectory() {
 }
 
 void RosbagRangeDataProcessorRos::initCommonRosStuff() {
-  // inputRosbagBasePath_ = nh_->param<std::string>("inputRosbagBasePath", "");
   inputRosbagName_ = nh_->param<std::string>("inputBagPath", "");
-  // outputRosbagName_ = nh_->param<std::string>("outputBagName", "");
   outputRosbagName_ = inputRosbagName_;
   
   outputRosbagName_.erase(outputRosbagName_.end() - 4, outputRosbagName_.end());
-  rosbagOutFullname_= inputRosbagBasePath_ + outputRosbagName_+ "_post_processed.bag";
+  rosbagOutFullname_= outputRosbagName_+ "_post_processed.bag";
+
+  rosbagOutFullnameTF_ = outputRosbagName_+ "_post_processed_tf.bag";
 
   // Printout the parameters.
-  ROS_INFO_STREAM("inputRosbagBasePath_: " << inputRosbagBasePath_);
-  ROS_INFO_STREAM("inputRosbagName_: " << inputRosbagName_);
-  ROS_INFO_STREAM("rosbagOutFullname_: " << rosbagOutFullname_);
+  ROS_INFO_STREAM("Input Rosbag Path: " << inputRosbagName_);
+  ROS_INFO_STREAM("Output Rosbag Path: " << rosbagOutFullname_);
+  ROS_INFO_STREAM("Output TF Rosbag Path: " << rosbagOutFullnameTF_);
   
 }
 
@@ -149,12 +143,12 @@ bool RosbagRangeDataProcessorRos::processOdometryRosbag() {
   // Open ROS bag.
   rosbag::Bag bag;
   try {
-    bag.open(rosbagFullname_, rosbag::bagmode::Read);
+    bag.open(inputRosbagName_, rosbag::bagmode::Read);
   } catch (const rosbag::BagIOException& e) {
-    ROS_ERROR_STREAM("Error opening ROS bag: '" << rosbagFullname_ << "'");
+    ROS_ERROR_STREAM("Error opening ROS bag: '" << inputRosbagName_ << "'");
     return false;
   }
-  ROS_INFO_STREAM("ROS bag '" << rosbagFullname_ << "' open.");
+  ROS_INFO_STREAM("ROS bag '" << inputRosbagName_ << "' open.");
 
   if (!validateTopicsInRosbag(bag, odomTopics)) {
     bag.close();
@@ -253,12 +247,12 @@ bool RosbagRangeDataProcessorRos::processGNSSRosbag() {
   // Open ROS bag.
   rosbag::Bag bag;
   try {
-    bag.open(rosbagFullname_, rosbag::bagmode::Read);
+    bag.open(inputRosbagName_, rosbag::bagmode::Read);
   } catch (const rosbag::BagIOException& e) {
-    ROS_ERROR_STREAM("Error opening ROS bag: '" << rosbagFullname_ << "'");
+    ROS_ERROR_STREAM("Error opening ROS bag: '" << inputRosbagName_ << "'");
     return false;
   }
-  ROS_INFO_STREAM("ROS bag '" << rosbagFullname_ << "' open.");
+  ROS_INFO_STREAM("ROS bag '" << inputRosbagName_ << "' open.");
 
   if (!validateTopicsInRosbag(bag, GPStopics)) {
     bag.close();
@@ -521,7 +515,7 @@ bool RosbagRangeDataProcessorRos::associateAndWriteOdometryMsgs() {
       tf2_msgs::TFMessage tfMsgs;
       tfMsgs.transforms.push_back(transformStamped);
 
-      outBag.write("/tf", ros_utc_time, tfMsgs);
+      outBag_tf.write("/tf", ros_utc_time, tfMsgs);
       outBag.write("/gt_box/cpt7/odom", ros_utc_time, odomMsg);
       odometryQuque_.pop();
     }
@@ -889,12 +883,12 @@ bool RosbagRangeDataProcessorRos::processIMURosbag() {
   // Open ROS bag.
   rosbag::Bag bag;
   try {
-    bag.open(rosbagFullname_, rosbag::bagmode::Read);
+    bag.open(inputRosbagName_, rosbag::bagmode::Read);
   } catch (const rosbag::BagIOException& e) {
-    ROS_ERROR_STREAM("Error opening ROS bag: '" << rosbagFullname_ << "'");
+    ROS_ERROR_STREAM("Error opening ROS bag: '" << inputRosbagName_ << "'");
     return false;
   }
-  ROS_INFO_STREAM("ROS bag '" << rosbagFullname_ << "' open.");
+  ROS_INFO_STREAM("ROS bag '" << inputRosbagName_ << "' open.");
 
   if (!validateTopicsInRosbag(bag, IMUtopics)) {
     bag.close();
