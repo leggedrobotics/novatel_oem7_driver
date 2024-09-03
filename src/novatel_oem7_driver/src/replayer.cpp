@@ -37,7 +37,7 @@ void RosbagRangeDataProcessorRos::run() {
 
   // We are ready to initiatate the outbag
   outBag.open(rosbagOutFullname_, rosbag::bagmode::Write);
-  outbag.setCompression(rosbag::compression::LZ4);
+  outBag.setCompression(rosbag::compression::LZ4);
   outBag_tf.open(rosbagOutFullnameTF_, rosbag::bagmode::Write);
   outBag_tf.setCompression(rosbag::compression::LZ4);
   
