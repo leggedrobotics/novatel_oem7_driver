@@ -807,7 +807,7 @@ namespace novatel_oem7_driver
       NavSatFix_pub_.setup<sensor_msgs::NavSatFix>(  "NavSatFix", nh);
       Odometry_pub_.setup<nav_msgs::Odometry>(       "Odometry",  nh);
 
-      nh.param<std::string>("base_frame", base_frame_, "base_link");
+      nh.param<std::string>("base_frame", base_frame_, "box_base");
 
       // Determine if position source is overriden by the user; otherwise it is determined dynamically.
       std::string position_source;
