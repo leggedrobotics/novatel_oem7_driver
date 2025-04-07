@@ -29,61 +29,61 @@
 
 #include <boost/asio.hpp>
 
-
 namespace novatel_oem7_driver
 {
-
-
-  template <class T>
-  class Oem7ReceiverNet: public Oem7Receiver<typename T::socket>
+template <class T>
+class Oem7ReceiverNet : public Oem7Receiver<typename T::socket>
+{
+  void endpoint_try_open()
   {
-    void endpoint_try_open()
+    if (this->endpoint_.is_open())
     {
-      if(this->endpoint_.is_open())
-      {
-        return;
-      }
-
-
-      std::string recvr_ip_addr;
-      this->nh_.getParam("oem7_ip_addr", recvr_ip_addr);
-
-      int recvr_port;
-      this->nh_.getParam("oem7_port", recvr_port);
-
-      ROS_INFO_STREAM("Oem7Net " << (T::v4().protocol() == IPPROTO_TCP ? "TCP" : "UDP") <<
-                      "['" << recvr_ip_addr << "' : " << recvr_port << "]");
-
-      boost::system::error_code err;
-
-      this->endpoint_.close(err); // Doesn't matter if we fail.
-      this->endpoint_.connect(typename T::endpoint(boost::asio::ip::address::from_string(recvr_ip_addr), recvr_port), err);
-      // Proceed regardless; successful connection does not guarantee subsequent operations will succeed.
-
-      ROS_INFO_STREAM("Oem7Net socket open: '" << this->endpoint_.is_open() << "; OS error= " << err.value());
-
-      static const std::string CONN_PRIMER("\r\n");
-      endpoint_write(boost::asio::buffer(CONN_PRIMER), err);
+      return;
     }
 
-    virtual size_t endpoint_read(boost::asio::mutable_buffer buf, boost::system::error_code& err)
-    {
-      boost::array<boost::asio::mutable_buffer, 1> bufs = {buf};
-      return this->endpoint_.receive(bufs, 0, err);
-    }
+    std::string recvr_ip_addr;
+    this->nh_.getParam("oem7_ip_addr", recvr_ip_addr);
 
-    virtual size_t endpoint_write(boost::asio::const_buffer buf, boost::system::error_code& err)
-    {
-      const boost::array<boost::asio::const_buffer, 1> bufs = {buf};
-      return this->endpoint_.send(bufs, 0, err);
-    }
-  };
+    int recvr_port;
+    this->nh_.getParam("oem7_port", recvr_port);
 
-  class Oem7ReceiverTcp: public Oem7ReceiverNet<boost::asio::ip::tcp>{};
-  class Oem7ReceiverUdp: public Oem7ReceiverNet<boost::asio::ip::udp>{};
-}
+    ROS_INFO_STREAM("Oem7Net " << (T::v4().protocol() == IPPROTO_TCP ? "TCP" : "UDP") << "['" << recvr_ip_addr
+                               << "' : " << recvr_port << "]");
 
+    boost::system::error_code err;
+
+    this->endpoint_.close(err);  // Doesn't matter if we fail.
+    this->endpoint_.connect(typename T::endpoint(boost::asio::ip::address::from_string(recvr_ip_addr), recvr_port),
+                            err);
+    // Proceed regardless; successful connection does not guarantee subsequent operations will succeed.
+
+    ROS_INFO_STREAM("Oem7Net socket open: '" << this->endpoint_.is_open() << "; OS error= " << err.value());
+
+    static const std::string CONN_PRIMER("\r\n");
+    endpoint_write(boost::asio::buffer(CONN_PRIMER), err);
+  }
+
+  virtual size_t endpoint_read(boost::asio::mutable_buffer buf, boost::system::error_code& err)
+  {
+    boost::array<boost::asio::mutable_buffer, 1> bufs = { buf };
+    return this->endpoint_.receive(bufs, 0, err);
+  }
+
+  virtual size_t endpoint_write(boost::asio::const_buffer buf, boost::system::error_code& err)
+  {
+    const boost::array<boost::asio::const_buffer, 1> bufs = { buf };
+    return this->endpoint_.send(bufs, 0, err);
+  }
+};
+
+class Oem7ReceiverTcp : public Oem7ReceiverNet<boost::asio::ip::tcp>
+{
+};
+class Oem7ReceiverUdp : public Oem7ReceiverNet<boost::asio::ip::udp>
+{
+};
+}  // namespace novatel_oem7_driver
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7ReceiverTcp,     novatel_oem7_driver::Oem7ReceiverIf)
-PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7ReceiverUdp,     novatel_oem7_driver::Oem7ReceiverIf)
+PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7ReceiverTcp, novatel_oem7_driver::Oem7ReceiverIf)
+PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7ReceiverUdp, novatel_oem7_driver::Oem7ReceiverIf)

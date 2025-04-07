@@ -22,9 +22,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #include <novatel_oem7_driver/oem7_message_handler_if.hpp>
-
 
 #include <ros/ros.h>
 
@@ -33,53 +31,50 @@
 
 #include <oem7_ros_publisher.hpp>
 
-
 namespace novatel_oem7_driver
 {
+/***
+ * Handler of ALIGH-related messages
+ */
+class ALIGNHandler : public Oem7MessageHandlerIf
+{
+  Oem7RosPublisher HEADING2_pub_;
 
-  /***
-   * Handler of ALIGH-related messages
-   */
-  class ALIGNHandler: public Oem7MessageHandlerIf
+  void publishHEADING2(Oem7RawMessageIf::ConstPtr msg)
   {
-    Oem7RosPublisher HEADING2_pub_;
+    boost::shared_ptr<novatel_oem7_msgs::HEADING2> heading2;
+    MakeROSMessage(msg, heading2);
+    HEADING2_pub_.publish(heading2);
+  }
 
-    void publishHEADING2(
-        Oem7RawMessageIf::ConstPtr msg)
-    {
-      boost::shared_ptr<novatel_oem7_msgs::HEADING2> heading2;
-      MakeROSMessage(msg, heading2);
-      HEADING2_pub_.publish(heading2);
-    }
+public:
+  ALIGNHandler()
+  {
+  }
 
-  public:
-    ALIGNHandler()
-    {
-    }
+  ~ALIGNHandler()
+  {
+  }
 
-    ~ALIGNHandler()
-    {
-    }
+  void initialize(ros::NodeHandle& nh)
+  {
+    HEADING2_pub_.setup<novatel_oem7_msgs::HEADING2>("HEADING2", nh);
+  }
 
-    void initialize(ros::NodeHandle& nh)
-    {
-      HEADING2_pub_.setup<novatel_oem7_msgs::HEADING2>("HEADING2", nh);
-    }
+  const std::vector<int>& getMessageIds()
+  {
+    static const std::vector<int> MSG_IDS({ HEADING2_OEM7_MSGID });
+    return MSG_IDS;
+  }
 
-    const std::vector<int>& getMessageIds()
-    {
-      static const std::vector<int> MSG_IDS({HEADING2_OEM7_MSGID});
-      return MSG_IDS;
-    }
+  void handleMsg(Oem7RawMessageIf::ConstPtr msg)
+  {
+    ROS_DEBUG_STREAM("ALIGN < [id= " << msg->getMessageId() << "]");
 
-    void handleMsg(Oem7RawMessageIf::ConstPtr msg)
-    {
-      ROS_DEBUG_STREAM("ALIGN < [id= " <<  msg->getMessageId() << "]");
-
-      publishHEADING2(msg);
-    }
-  };
-}
+    publishHEADING2(msg);
+  }
+};
+}  // namespace novatel_oem7_driver
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::ALIGNHandler, novatel_oem7_driver::Oem7MessageHandlerIf)

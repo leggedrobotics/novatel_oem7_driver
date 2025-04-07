@@ -34,35 +34,34 @@
 
 namespace novatel_oem7_driver
 {
-  class NMEAHandler: public Oem7MessageHandlerIf
+class NMEAHandler : public Oem7MessageHandlerIf
+{
+  Oem7RosPublisher NMEA_pub_;  ///< Publisher for NMEA sentences
+
+  void publishNMEASentence(Oem7RawMessageIf::ConstPtr msg)
   {
-    Oem7RosPublisher NMEA_pub_; ///< Publisher for NMEA sentences
+    boost::shared_ptr<nmea_msgs::Sentence> nmea_sentence(new nmea_msgs::Sentence);
+    nmea_sentence->sentence.assign(reinterpret_cast<const char*>(msg->getMessageData(0)), msg->getMessageDataLength());
+    NMEA_pub_.publish(nmea_sentence);
+  }
 
+public:
+  void initialize(ros::NodeHandle& nh)
+  {
+    NMEA_pub_.setup<nmea_msgs::Sentence>("NMEA_Sentence", nh);
+  }
 
-    void publishNMEASentence(Oem7RawMessageIf::ConstPtr msg)
-    {
-      boost::shared_ptr<nmea_msgs::Sentence> nmea_sentence(new nmea_msgs::Sentence);
-      nmea_sentence->sentence.assign(reinterpret_cast<const char*>(msg->getMessageData(0)), msg->getMessageDataLength());
-      NMEA_pub_.publish(nmea_sentence);
-    }
+  const std::vector<int>& getMessageIds()
+  {
+    return OEM7_NMEA_MSGIDS;
+  }
 
-  public:
-    void initialize(ros::NodeHandle& nh)
-    {
-      NMEA_pub_.setup<nmea_msgs::Sentence>("NMEA_Sentence", nh);
-    }
-
-    const std::vector<int>& getMessageIds()
-    {
-      return OEM7_NMEA_MSGIDS;
-    }
-
-    void handleMsg(Oem7RawMessageIf::ConstPtr msg)
-    {
-      publishNMEASentence(msg);
-    }
-  };
-}
+  void handleMsg(Oem7RawMessageIf::ConstPtr msg)
+  {
+    publishNMEASentence(msg);
+  }
+};
+}  // namespace novatel_oem7_driver
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::NMEAHandler, novatel_oem7_driver::Oem7MessageHandlerIf)

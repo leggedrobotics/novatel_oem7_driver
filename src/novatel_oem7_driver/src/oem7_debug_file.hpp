@@ -22,32 +22,27 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-
 #include <ros/ros.h>
 
 #include <string.h>
 #include <fstream>
 
-
 namespace novatel_oem7_driver
 {
-  /**
-   * File under .ros, for capturing debug output not suitable for console.
-   */
-  class Oem7DebugFile
-  {
-    std::ofstream oem7_file_; ///< output
+/**
+ * File under .ros, for capturing debug output not suitable for console.
+ */
+class Oem7DebugFile
+{
+  std::ofstream oem7_file_;  ///< output
 
-    std::string file_name_; ///< Filesystem name
+  std::string file_name_;  ///< Filesystem name
 
+public:
+  Oem7DebugFile();
 
-  public:
-    Oem7DebugFile();
+  virtual bool initialize(std::string& debug_file_name);
 
-    virtual bool initialize(std::string& debug_file_name);
-
-    virtual bool write(const unsigned char* buf, size_t len);
-    
-  };
-}
-
+  virtual bool write(const unsigned char* buf, size_t len);
+};
+}  // namespace novatel_oem7_driver

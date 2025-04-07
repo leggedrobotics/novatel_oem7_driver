@@ -29,105 +29,103 @@
 #include <boost/asio.hpp>
 #include <fstream>
 
-
 namespace novatel_oem7_driver
 {
-  /**
-   * 'Virtual' Oem7 interface, where input is read from a file. The contents of the file is any relevant receiver output.
-   */
-  class Oem7ReceiverFile: public Oem7ReceiverIf
+/**
+ * 'Virtual' Oem7 interface, where input is read from a file. The contents of the file is any relevant receiver output.
+ */
+class Oem7ReceiverFile : public Oem7ReceiverIf
+{
+  std::ifstream oem7_file_;  ///< Input
+
+  size_t num_byte_read_;  ///< Total number of bytes read from file.
+
+public:
+  Oem7ReceiverFile() : num_byte_read_(0)
   {
-    std::ifstream oem7_file_; ///< Input
+  }
 
-    size_t num_byte_read_; ///< Total number of bytes read from file.
+  ~Oem7ReceiverFile()
+  {
+  }
 
+  /**
+   * Prepares the input file for reading. The file is opened as binary/read only.
+   */
+  virtual bool initialize(ros::NodeHandle& nh)
+  {
+    std::string oem7_file_name;
+    ;
+    nh.getParam("oem7_file_name", oem7_file_name);
 
-  public:
-    Oem7ReceiverFile():
-      num_byte_read_(0)
+    ROS_INFO_STREAM("Oem7File['" << oem7_file_name << "']");
+
+    oem7_file_.open(oem7_file_name, std::ios::in | std::ios::binary);
+    int errno_value = errno;  // Cache errno locally, in case any ROS calls /macros affect it.
+    if (!oem7_file_)
     {
-    }
-
-    ~Oem7ReceiverFile()
-    {
-    }
-
-    /**
-     * Prepares the input file for reading. The file is opened as binary/read only.
-     */
-    virtual bool initialize(ros::NodeHandle& nh)
-    {
-      std::string oem7_file_name;;
-      nh.getParam("oem7_file_name", oem7_file_name);
-
-      ROS_INFO_STREAM("Oem7File['" << oem7_file_name << "']");
-
-      oem7_file_.open(oem7_file_name, std::ios::in | std::ios::binary);
-      int errno_value = errno; // Cache errno locally, in case any ROS calls /macros affect it.
-      if(!oem7_file_)
-      {
-        ROS_ERROR_STREAM("Could not open '" << oem7_file_name << "'; error= " << errno_value << " '"
-                                            << strerror(errno_value) << "'");
-        return false;
-      }
-
-      return true;
-    }
-
-    /**
-     * Reads input from file.
-     *
-     */
-    virtual bool read( boost::asio::mutable_buffer buf, size_t& rlen)
-    {
-      if(!oem7_file_)
-      {
-        ROS_ERROR_STREAM("Error accessing file." );
-        return false;
-      }
-
-      // Workaround for automated testing:
-      // delay reporting logs so that 'rosbag record' has a chance to subscribe to the topic after they are published.
-      // Otherwise it is likely to miss messages.
-      if(num_byte_read_ == 0)
-      {
-        sleep(3); // Use absolute sleep, as this is not related to ROS internal timing.
-      }
-
-      oem7_file_.read(boost::asio::buffer_cast<char*>(buf), boost::asio::buffer_size(buf));
-      int errno_value = errno; // Cache errno locally, in case any ROS calls /macros affect it.
-
-      rlen = oem7_file_.gcount();
-      num_byte_read_ += rlen;
-
-      if(oem7_file_.eof())
-      {
-        ROS_INFO_STREAM("No more input available. Read " << num_byte_read_ << " bytes." );
-
-        return false;
-      }
-
-      if(!oem7_file_)
-      {
-        ROS_ERROR_STREAM("Error " << errno_value << " reading input: '"  << strerror(errno_value) << "'" );
-
-        return false;
-      }
-
-      return true;
-    }
-
-    /**
-     * Takes no action.
-     *
-     * @return false always.
-     */
-    virtual bool write(boost::asio::const_buffer buf)
-    {
+      ROS_ERROR_STREAM("Could not open '" << oem7_file_name << "'; error= " << errno_value << " '"
+                                          << strerror(errno_value) << "'");
       return false;
     }
-  };
-}
+
+    return true;
+  }
+
+  /**
+   * Reads input from file.
+   *
+   */
+  virtual bool read(boost::asio::mutable_buffer buf, size_t& rlen)
+  {
+    if (!oem7_file_)
+    {
+      ROS_ERROR_STREAM("Error accessing file.");
+      return false;
+    }
+
+    // Workaround for automated testing:
+    // delay reporting logs so that 'rosbag record' has a chance to subscribe to the topic after they are published.
+    // Otherwise it is likely to miss messages.
+    if (num_byte_read_ == 0)
+    {
+      sleep(3);  // Use absolute sleep, as this is not related to ROS internal timing.
+    }
+
+    oem7_file_.read(boost::asio::buffer_cast<char*>(buf), boost::asio::buffer_size(buf));
+    int errno_value = errno;  // Cache errno locally, in case any ROS calls /macros affect it.
+
+    rlen = oem7_file_.gcount();
+    num_byte_read_ += rlen;
+
+    if (oem7_file_.eof())
+    {
+      ROS_INFO_STREAM("No more input available. Read " << num_byte_read_ << " bytes.");
+
+      return false;
+    }
+
+    if (!oem7_file_)
+    {
+      ROS_ERROR_STREAM("Error " << errno_value << " reading input: '" << strerror(errno_value) << "'");
+
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Takes no action.
+   *
+   * @return false always.
+   */
+  virtual bool write(boost::asio::const_buffer buf)
+  {
+    return false;
+  }
+};
+}  // namespace novatel_oem7_driver
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7ReceiverFile, novatel_oem7_driver::Oem7ReceiverIf)

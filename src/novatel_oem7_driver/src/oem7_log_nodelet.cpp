@@ -34,85 +34,80 @@
 
 namespace novatel_oem7_driver
 {
+/*
+ * Adapter: novatel_oem7_msgs::Oem7RawMsg and Oem7RawMsgIf
+ */
+class RawMsgAdapter : public Oem7RawMessageIf
+{
+public:
+  const novatel_oem7_msgs::Oem7RawMsg::ConstPtr msg_;
 
-  /*
-   * Adapter: novatel_oem7_msgs::Oem7RawMsg and Oem7RawMsgIf
-   */
-  class RawMsgAdapter: public Oem7RawMessageIf
+  RawMsgAdapter(const novatel_oem7_msgs::Oem7RawMsg::ConstPtr& msg) : msg_(msg)
   {
-  public:
-    const novatel_oem7_msgs::Oem7RawMsg::ConstPtr msg_;
+  }
 
-    RawMsgAdapter(const novatel_oem7_msgs::Oem7RawMsg::ConstPtr& msg):
-      msg_(msg)
-    {
-    }
-
-    Oem7MessageType getMessageType() const
-    {
-      assert(false);
-      return Oem7RawMessageIf::OEM7MSGTYPE_UNKNOWN;
-    }
-
-    Oem7MessageFormat getMessageFormat() const
-    {
-      assert(false);
-      return Oem7RawMessageIf::OEM7MSGFMT_UNKNOWN;
-    }
-
-    int  getMessageId() const
-    {
-      const Oem7MessageCommonHeaderMem* mem =
-          reinterpret_cast<const Oem7MessageCommonHeaderMem*>(getMessageData(0));
-      return mem->message_id;
-    }
-
-    const uint8_t* getMessageData(size_t offset) const
-    {
-      return const_cast<uint8_t*>(msg_->message_data.data()); // FIXME
-    }
-
-    size_t getMessageDataLength() const
-    {
-      return msg_->message_data.size();
-    }
-  };
-  /*
-   * Nodelet responsible for decoding raw Oem7 messages and generating specific ROS and novatel_oem7_msg messages.
-   * Subscribes to "oem7_raw_msg", and loads plugins which advertise specific messages.
-   * Raw oem7 messages are dispatched to plugins for decoding.
-   */
-  class Oem7LogNodelet : public nodelet::Nodelet
+  Oem7MessageType getMessageType() const
   {
-    boost::scoped_ptr<MessageHandler> msg_handler_;
+    assert(false);
+    return Oem7RawMessageIf::OEM7MSGTYPE_UNKNOWN;
+  }
 
-    ros::Subscriber oem7_raw_msg_sub_;
+  Oem7MessageFormat getMessageFormat() const
+  {
+    assert(false);
+    return Oem7RawMessageIf::OEM7MSGFMT_UNKNOWN;
+  }
 
+  int getMessageId() const
+  {
+    const Oem7MessageCommonHeaderMem* mem = reinterpret_cast<const Oem7MessageCommonHeaderMem*>(getMessageData(0));
+    return mem->message_id;
+  }
 
-    public:
-    Oem7LogNodelet()
-    {
-    }
+  const uint8_t* getMessageData(size_t offset) const
+  {
+    return const_cast<uint8_t*>(msg_->message_data.data());  // FIXME
+  }
 
-    void onInit()
-    {
-      ros::NodeHandle nh = getNodeHandle();
-      ros::NodeHandle priv_nh = getPrivateNodeHandle();
-      msg_handler_.reset(new MessageHandler(priv_nh));
+  size_t getMessageDataLength() const
+  {
+    return msg_->message_data.size();
+  }
+};
+/*
+ * Nodelet responsible for decoding raw Oem7 messages and generating specific ROS and novatel_oem7_msg messages.
+ * Subscribes to "oem7_raw_msg", and loads plugins which advertise specific messages.
+ * Raw oem7 messages are dispatched to plugins for decoding.
+ */
+class Oem7LogNodelet : public nodelet::Nodelet
+{
+  boost::scoped_ptr<MessageHandler> msg_handler_;
 
-      oem7_raw_msg_sub_ = nh.subscribe("oem7_raw_msg", 100, &Oem7LogNodelet::oem7RawMsgCb, this);
-    }
+  ros::Subscriber oem7_raw_msg_sub_;
 
-    /**
-     * Dispatches raw messages for handling
-     */
-    void oem7RawMsgCb(const novatel_oem7_msgs::Oem7RawMsg::ConstPtr& msg)
-    {
-      boost::shared_ptr<RawMsgAdapter> raw_msg = boost::make_shared<RawMsgAdapter>(msg);
-      msg_handler_->handleMessage(raw_msg);
-    }
-  };
-}
+public:
+  Oem7LogNodelet()
+  {
+  }
 
+  void onInit()
+  {
+    ros::NodeHandle nh = getNodeHandle();
+    ros::NodeHandle priv_nh = getPrivateNodeHandle();
+    msg_handler_.reset(new MessageHandler(priv_nh));
+
+    oem7_raw_msg_sub_ = nh.subscribe("oem7_raw_msg", 100, &Oem7LogNodelet::oem7RawMsgCb, this);
+  }
+
+  /**
+   * Dispatches raw messages for handling
+   */
+  void oem7RawMsgCb(const novatel_oem7_msgs::Oem7RawMsg::ConstPtr& msg)
+  {
+    boost::shared_ptr<RawMsgAdapter> raw_msg = boost::make_shared<RawMsgAdapter>(msg);
+    msg_handler_->handleMessage(raw_msg);
+  }
+};
+}  // namespace novatel_oem7_driver
 
 PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7LogNodelet, nodelet::Nodelet);

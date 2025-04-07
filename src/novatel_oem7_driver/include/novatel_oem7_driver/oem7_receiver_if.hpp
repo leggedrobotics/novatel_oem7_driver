@@ -25,26 +25,21 @@
 #ifndef __OEM7_RECEIVER_INTERFACE_HPP__
 #define __OEM7_RECEIVER_INTERFACE_HPP__
 
-
 #include <ros/ros.h>
 #include <cstddef>
 #include <boost/asio/buffer.hpp>
 
-
-
-
 namespace novatel_oem7_driver
 {
-  class Oem7ReceiverIf
-  {
-  public:
-    virtual ~Oem7ReceiverIf(){};
-    virtual bool initialize(ros::NodeHandle&) = 0;
+class Oem7ReceiverIf
+{
+public:
+  virtual ~Oem7ReceiverIf(){};
+  virtual bool initialize(ros::NodeHandle&) = 0;
 
-    virtual bool read( boost::asio::mutable_buffer, size_t&) = 0;
-    virtual bool write(boost::asio::const_buffer           ) = 0;
-  };
-}
-
+  virtual bool read(boost::asio::mutable_buffer, size_t&) = 0;
+  virtual bool write(boost::asio::const_buffer) = 0;
+};
+}  // namespace novatel_oem7_driver
 
 #endif

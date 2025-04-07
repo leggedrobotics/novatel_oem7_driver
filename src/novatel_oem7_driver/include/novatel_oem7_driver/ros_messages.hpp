@@ -27,21 +27,16 @@
 
 #include <ros/ros.h>
 
-
 namespace novatel_oem7_driver
 {
+uint32_t GetNextMsgSequenceNumber();
 
-  uint32_t GetNextMsgSequenceNumber();
-
-  template <typename T>
-  void
-  SetROSHeader(
-      const std::string& frame_id,
-      boost::shared_ptr<T>& msg)
-  {
-    msg->header.frame_id = frame_id;
-    msg->header.stamp    = ros::Time::now();
-    msg->header.seq      = GetNextMsgSequenceNumber();
-  }
+template <typename T>
+void SetROSHeader(const std::string& frame_id, boost::shared_ptr<T>& msg)
+{
+  msg->header.frame_id = frame_id;
+  msg->header.stamp = ros::Time::now();
+  msg->header.seq = GetNextMsgSequenceNumber();
 }
+}  // namespace novatel_oem7_driver
 #endif

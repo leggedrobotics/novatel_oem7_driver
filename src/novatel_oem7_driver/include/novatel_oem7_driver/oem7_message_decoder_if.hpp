@@ -25,7 +25,6 @@
 #ifndef __OEM7_MESSAGE_PARSER_IF_HPP__
 #define __OEM7_MESSAGE_PARSER_IF_HPP__
 
-
 #include <ros/ros.h>
 #include <cstddef>
 #include <boost/asio/buffer.hpp>
@@ -38,48 +37,48 @@
 
 namespace novatel_oem7_driver
 {
-  /**
-   * Interface implemented by Oem7RawMessageParserIf users, in order to receiver message callbacks.
-   */
-  class Oem7MessageDecoderUserIf
-  {
-  public:
-    virtual ~Oem7MessageDecoderUserIf(){};
-
-    /**
-     * Called when new message is available.
-     */
-    virtual void onNewMessage(boost::shared_ptr<const novatel_oem7::Oem7RawMessageIf>) = 0;
-  };
-
+/**
+ * Interface implemented by Oem7RawMessageParserIf users, in order to receiver message callbacks.
+ */
+class Oem7MessageDecoderUserIf
+{
+public:
+  virtual ~Oem7MessageDecoderUserIf(){};
 
   /**
-   * Interface for accessing Oem7 message decoder.
-   * The user is responsible for initializing it, and calling service from its preferred context.
-   * Any callbacks on Oem7RawMessageParserUserIf are made from the service context.
+   * Called when new message is available.
    */
-  class Oem7MessageDecoderIf
+  virtual void onNewMessage(boost::shared_ptr<const novatel_oem7::Oem7RawMessageIf>) = 0;
+};
+
+/**
+ * Interface for accessing Oem7 message decoder.
+ * The user is responsible for initializing it, and calling service from its preferred context.
+ * Any callbacks on Oem7RawMessageParserUserIf are made from the service context.
+ */
+class Oem7MessageDecoderIf
+{
+public:
+  virtual ~Oem7MessageDecoderIf()
   {
-  public:
-    virtual ~Oem7MessageDecoderIf(){}
+  }
 
-    /**
-     * Initializes the parser.
-     * @return true on success
-     */
-    virtual bool initialize(
-        ros::NodeHandle&            nh,    /**< [in] handle of the owner node. Parser uses it to access ROS environment. */
-        Oem7ReceiverIf*             recvr, /**< [in] Receiver interface used for data input */
-        Oem7MessageDecoderUserIf* user   /**< [in] Interface to receiver message callbacks */
-        ) = 0;
+  /**
+   * Initializes the parser.
+   * @return true on success
+   */
+  virtual bool initialize(ros::NodeHandle& nh,   /**< [in] handle of the owner node. Parser uses it to access ROS
+                                                    environment. */
+                          Oem7ReceiverIf* recvr, /**< [in] Receiver interface used for data input */
+                          Oem7MessageDecoderUserIf* user /**< [in] Interface to receiver message callbacks */
+                          ) = 0;
 
-    /**
-     * Message decoder service loop; blocks as long as input is available.
-     * Returns when no more input is available; or when ros::ok() returns false.
-     */
-    virtual void service() = 0;
-  };
-}
-
+  /**
+   * Message decoder service loop; blocks as long as input is available.
+   * Returns when no more input is available; or when ros::ok() returns false.
+   */
+  virtual void service() = 0;
+};
+}  // namespace novatel_oem7_driver
 
 #endif

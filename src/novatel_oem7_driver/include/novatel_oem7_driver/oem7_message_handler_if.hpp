@@ -25,7 +25,6 @@
 #ifndef __OEM7_MESSAGE_HANDLER_IF_HPP__
 #define __OEM7_MESSAGE_HANDLER_IF_HPP__
 
-
 #include <ros/ros.h>
 
 #include <vector>
@@ -35,30 +34,29 @@ using novatel_oem7::Oem7RawMessageIf;
 
 namespace novatel_oem7_driver
 {
+/**
+ * Interface implemented by modules handling Oem7RawMessageIf messages
+ */
+class Oem7MessageHandlerIf
+{
+public:
+  virtual ~Oem7MessageHandlerIf(){};
+
   /**
-   * Interface implemented by modules handling Oem7RawMessageIf messages
+   * Initializes the handler
    */
-  class Oem7MessageHandlerIf
-  {
-  public:
-    virtual ~Oem7MessageHandlerIf(){};
+  virtual void initialize(ros::NodeHandle&) = 0;
 
-    /**
-     * Initializes the handler
-     */
-    virtual void initialize(ros::NodeHandle&) = 0;
+  /**
+   * @return a vector of Oem7 message IDs to be handled by this Handler.
+   */
+  virtual const std::vector<int>& getMessageIds() = 0;
 
-    /**
-     * @return a vector of Oem7 message IDs to be handled by this Handler.
-     */
-    virtual const std::vector<int>& getMessageIds() = 0;
-
-    /**
-     * Handle a message
-     */
-    virtual void handleMsg(Oem7RawMessageIf::ConstPtr msg) = 0;
-  };
-}
-
+  /**
+   * Handle a message
+   */
+  virtual void handleMsg(Oem7RawMessageIf::ConstPtr msg) = 0;
+};
+}  // namespace novatel_oem7_driver
 
 #endif

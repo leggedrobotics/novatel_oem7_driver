@@ -24,12 +24,10 @@
 
 #include <novatel_oem7_driver/oem7_imu.hpp>
 
-
-#include <cmath> // PI
+#include <cmath>  // PI
 
 namespace novatel_oem7_driver
 {
-
 const double ONE_G = 9.80665;
 
 ///
@@ -56,21 +54,15 @@ inline double feetToMeters(double feet)
   return feet / 3.2808;
 }
 
-
-bool
-getImuRawScaleFactors(
-    oem7_imu_type_t imu_type,
-    imu_rate_t      imu_rate,
-    double& gyro_scale,
-    double& acc_scale)
+bool getImuRawScaleFactors(oem7_imu_type_t imu_type, imu_rate_t imu_rate, double& gyro_scale, double& acc_scale)
 {
   // Refer to RAWIMUSX in OEM7 documentation.
 
-  switch(imu_type)
+  switch (imu_type)
   {
     case IMU_TYPE_LN200:
       gyro_scale = pow(2.0, -19);
-      acc_scale  = pow(2.0, -14);
+      acc_scale = pow(2.0, -14);
       break;
 
     case IMU_TYPE_HG1900_CA29:
@@ -80,75 +72,71 @@ getImuRawScaleFactors(
     case IMU_TYPE_HG1700_AG11:
     case IMU_TYPE_HG1700_AG58:
       gyro_scale = pow(2.0, -33);
-      acc_scale  = feetToMeters(pow(2.0, -27));
+      acc_scale = feetToMeters(pow(2.0, -27));
       break;
 
     case IMU_TYPE_HG1700_AG17:
     case IMU_TYPE_HG1700_AG62:
       gyro_scale = pow(2.0, -33);
-      acc_scale  = feetToMeters(pow(2.0, -26));
+      acc_scale = feetToMeters(pow(2.0, -26));
       break;
-
 
     case IMU_TYPE_IMAR_FSAS:
       gyro_scale = arcsecondsToRadians(0.1 / pow(2, 8));
-      acc_scale  = 0.05 / pow(2.0, 15);
+      acc_scale = 0.05 / pow(2.0, 15);
       break;
 
     case IMU_TYPE_ISA100C:
     case IMU_TYPE_LITEF_MICROIMU:
       gyro_scale = 1.0E-9;
-      acc_scale  = 2.0E-8;
+      acc_scale = 2.0E-8;
       break;
 
     case IMU_TYPE_ADIS16488:
-      gyro_scale = degreesToRadians(720.0/pow(2,31));
-      acc_scale  = 200.0 / pow(2, 31);
+      gyro_scale = degreesToRadians(720.0 / pow(2, 31));
+      acc_scale = 200.0 / pow(2, 31);
       break;
 
     case IMU_TYPE_STIM300:
     case IMU_TYPE_STIM_300D:
-      gyro_scale = degreesToRadians(pow(2,-21));
-      acc_scale  = pow(2, -22);
+      gyro_scale = degreesToRadians(pow(2, -21));
+      acc_scale = pow(2, -22);
       break;
 
     case IMU_TYPE_KVH_1750:
       gyro_scale = 0.1 / (3600.0 * 256.0);
-      acc_scale  = 0.05 * pow(2.0, -15);
+      acc_scale = 0.05 * pow(2.0, -15);
       break;
 
     case IMU_TYPE_EPSON_G320:
     case IMU_TYPE_EPSON_G320_200HZ:
       gyro_scale = degreesToRadians(0.008 / pow(2.0, 16)) / imu_rate;
-      acc_scale  = ( (0.2 / pow(2.0, 16)) * (ONE_G/1000.0) ) / imu_rate;
+      acc_scale = ((0.2 / pow(2.0, 16)) * (ONE_G / 1000.0)) / imu_rate;
       break;
 
     case IMU_TYPE_HG4930_AN01:
     case IMU_TYPE_HG4930_AN04:
     case IMU_TYPE_HG4930_AN04_400HZ:
       gyro_scale = pow(2.0, -33);
-      acc_scale  = pow(2.0, -29);
+      acc_scale = pow(2.0, -29);
       break;
 
-
     case IMU_TYPE_EPSON_G370:
-      gyro_scale = degreesToRadians(0.0151515/ pow(2.0, 16)) / imu_rate;
-      acc_scale  = ((0.4 / pow(2.0, 16)) * (ONE_G/1000.0)) / imu_rate;
+      gyro_scale = degreesToRadians(0.0151515 / pow(2.0, 16)) / imu_rate;
+      acc_scale = ((0.4 / pow(2.0, 16)) * (ONE_G / 1000.0)) / imu_rate;
       break;
 
     case IMU_TYPE_KVH_COTS:
       gyro_scale = 0.1 / (3600.0 * 256.0);
-      acc_scale  = 0.05 / pow(2.0, 15);
+      acc_scale = 0.05 / pow(2.0, 15);
       break;
 
-    case IMU_TYPE_UNKNOWN: // Unsupported
+    case IMU_TYPE_UNKNOWN:  // Unsupported
     default:
       return false;
   };
 
   return true;
-
 }
 
-
-}
+}  // namespace novatel_oem7_driver

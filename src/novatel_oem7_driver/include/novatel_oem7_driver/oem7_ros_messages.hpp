@@ -35,19 +35,10 @@ using novatel_oem7::Oem7RawMessageIf;
 
 namespace novatel_oem7_driver
 {
+template <class T>
+void MakeROSMessage(const Oem7RawMessageIf::ConstPtr& msg, boost::shared_ptr<T>& rosmsg);
 
-  template <class T>
-  void
-  MakeROSMessage(const Oem7RawMessageIf::ConstPtr& msg, boost::shared_ptr<T>& rosmsg);
-
-  void
-  GetDOPFromPSRDOP2(
-      const Oem7RawMessageIf::ConstPtr& msg,
-      uint32_t system_to_use,
-      double&      gdop,
-      double&      pdop,
-      double&      hdop,
-      double&      vdop,
-      double&      tdop);
-}
+void GetDOPFromPSRDOP2(const Oem7RawMessageIf::ConstPtr& msg, uint32_t system_to_use, double& gdop, double& pdop,
+                       double& hdop, double& vdop, double& tdop);
+}  // namespace novatel_oem7_driver
 #endif

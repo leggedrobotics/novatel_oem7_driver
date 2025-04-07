@@ -39,64 +39,44 @@ using novatel_oem7::Oem7RawMessageIf;
 
 namespace novatel_oem7_driver
 {
+static const std::vector<int> OEM7_NMEA_MSGIDS({ GLMLA_OEM7_MSGID, GPALM_OEM7_MSGID, GPGGA_OEM7_MSGID,
+                                                 GPGGALONG_OEM7_MSGID, GPGLL_OEM7_MSGID, GPGRS_OEM7_MSGID,
+                                                 GPGSA_OEM7_MSGID, GPGST_OEM7_MSGID, GPGSV_OEM7_MSGID, GPHDT_OEM7_MSGID,
+                                                 GPHDTDUALANTENNA_MSGID, GPRMB_OEM7_MSGID, GPRMC_OEM7_MSGID,
+                                                 GPVTG_OEM7_MSGID, GPZDA_OEM7_MSGID });
 
-  static const std::vector<int> OEM7_NMEA_MSGIDS(
-    {
-     GLMLA_OEM7_MSGID,
-     GPALM_OEM7_MSGID,
-     GPGGA_OEM7_MSGID,
-     GPGGALONG_OEM7_MSGID,
-     GPGLL_OEM7_MSGID,
-     GPGRS_OEM7_MSGID,
-     GPGSA_OEM7_MSGID,
-     GPGST_OEM7_MSGID,
-     GPGSV_OEM7_MSGID,
-     GPHDT_OEM7_MSGID,
-     GPHDTDUALANTENNA_MSGID,
-     GPRMB_OEM7_MSGID,
-     GPRMC_OEM7_MSGID,
-     GPVTG_OEM7_MSGID,
-     GPZDA_OEM7_MSGID
-    }
-  );
+void initializeOem7MessageUtil(ros::NodeHandle& nh);
+int getOem7MessageId(const std::string& msg_name);
+const std::string& getOem7MessageName(int msg_id);
 
+/**
+ * Populates Oem7 Binary message header from raw message
+ *
+ */
+void getOem7Header(const Oem7RawMessageIf::ConstPtr& raw_msg,  ///< [in] Raw binary message
+                   novatel_oem7_msgs::Oem7Header::Type& hdr    ///< [out] Oem7 Message Header
+);
 
-  void initializeOem7MessageUtil(ros::NodeHandle& nh);
-  int getOem7MessageId(const std::string& msg_name);
-  const std::string& getOem7MessageName(int msg_id);
+/**
+ * Populates Oem7 Binary message header from 'short' raw message
+ *
+ */
+void getOem7ShortHeader(const Oem7RawMessageIf::ConstPtr& raw_msg,  ///< [in] Raw binary message
+                        novatel_oem7_msgs::Oem7Header::Type& hdr    ///< [out] Oem7 Message Header
+);
 
-  /**
-   * Populates Oem7 Binary message header from raw message
-   *
-   */
-  void getOem7Header(
-      const Oem7RawMessageIf::ConstPtr& raw_msg, ///< [in] Raw binary message
-      novatel_oem7_msgs::Oem7Header::Type& hdr   ///< [out] Oem7 Message Header
-      );
+bool isNMEAMessage(const Oem7RawMessageIf::ConstPtr& raw_msg);
 
-  /**
-   * Populates Oem7 Binary message header from 'short' raw message
-   *
-   */
-  void getOem7ShortHeader(
-      const Oem7RawMessageIf::ConstPtr& raw_msg, ///< [in] Raw binary message
-      novatel_oem7_msgs::Oem7Header::Type& hdr   ///< [out] Oem7 Message Header
-      );
+size_t Get_INSCONFIG_NumTranslations(const INSCONFIG_FixedMem* insconfig);
 
-  bool isNMEAMessage(const Oem7RawMessageIf::ConstPtr& raw_msg);
+const INSCONFIG_TranslationMem* Get_INSCONFIG_Translation(const INSCONFIG_FixedMem* insconfig, size_t idx);
 
-  size_t Get_INSCONFIG_NumTranslations(const INSCONFIG_FixedMem* insconfig);
+size_t Get_INSCONFIG_NumRotations(const INSCONFIG_FixedMem* insconfig);
 
-  const INSCONFIG_TranslationMem* Get_INSCONFIG_Translation(const INSCONFIG_FixedMem* insconfig, size_t idx);
+const INSCONFIG_RotationMem* Get_INSCONFIG_Rotation(const INSCONFIG_FixedMem* insconfig, size_t idx);
 
-  size_t Get_INSCONFIG_NumRotations(const INSCONFIG_FixedMem* insconfig);
-
-  const INSCONFIG_RotationMem* Get_INSCONFIG_Rotation(const INSCONFIG_FixedMem* insconfig, size_t idx);
-
-
-  size_t Get_PSRDOP2_NumSystems(const PSRDOP2_FixedMem* psrdop2);
-  const PSRDOP2_SystemMem* Get_PSRDOP2_System(const PSRDOP2_FixedMem* psrdop2, size_t idx);
-}
-
+size_t Get_PSRDOP2_NumSystems(const PSRDOP2_FixedMem* psrdop2);
+const PSRDOP2_SystemMem* Get_PSRDOP2_System(const PSRDOP2_FixedMem* psrdop2, size_t idx);
+}  // namespace novatel_oem7_driver
 
 #endif

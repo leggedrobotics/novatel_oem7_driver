@@ -27,55 +27,52 @@
 #include <pluginlib/class_loader.h>
 #include <pluginlib/class_list_macros.h>
 
-
-
 namespace novatel_oem7_driver
 {
- /**
+/**
  * Constructs the handler by loading the plugins based on user-defined parameters
  */
-  MessageHandler::MessageHandler(ros::NodeHandle& nh):
-    msg_handler_loader_("novatel_oem7_driver", "novatel_oem7_driver::Oem7MessageHandlerIf")
+MessageHandler::MessageHandler(ros::NodeHandle& nh)
+  : msg_handler_loader_("novatel_oem7_driver", "novatel_oem7_driver::Oem7MessageHandlerIf")
+{
+  // Load the plugins and create the dispatch table.
+  std::vector<std::string> msg_handler_names;
+  nh.getParam("oem7_msg_handlers", msg_handler_names);
+  for (const auto& name : msg_handler_names)
   {
-    // Load the plugins and create the dispatch table.
-    std::vector<std::string> msg_handler_names;
-    nh.getParam("oem7_msg_handlers", msg_handler_names);
-    for(const auto& name : msg_handler_names)
+    MessageHandlerShPtr msg_handler = msg_handler_loader_.createInstance(name);
+
+    msg_handler->initialize(nh);
+
+    for (int msg_id : msg_handler->getMessageIds())
     {
-      MessageHandlerShPtr msg_handler = msg_handler_loader_.createInstance(name);
-
-      msg_handler->initialize(nh);
-
-      for(int msg_id: msg_handler->getMessageIds())
+      MessageHandlerMap::iterator itr = msg_handler_map_.find(msg_id);
+      if (itr == msg_handler_map_.end())
       {
-        MessageHandlerMap::iterator itr = msg_handler_map_.find(msg_id);
-        if(itr == msg_handler_map_.end())
-        {
-          msg_handler_map_[msg_id].reset(new MsgHandlerList);
-        }
-
-        msg_handler_map_[msg_id]->push_back(msg_handler);
+        msg_handler_map_[msg_id].reset(new MsgHandlerList);
       }
-    }
-  }
 
-  /**
-   * Dispatches raw messages to plugins for decoding.
-   */
-  void MessageHandler::handleMessage(Oem7RawMessageIf::ConstPtr raw_msg)
-  {
-    MessageHandlerMap::iterator itr = msg_handler_map_.find(raw_msg->getMessageId());
-    if(itr == msg_handler_map_.end())
-    {
-      ROS_DEBUG_STREAM("No handler for message ID= " <<  raw_msg->getMessageId());
-      return;
-    }
-
-    MessageHandlerListPtr& msg_handler_list = itr->second;
-    for(auto& h: *msg_handler_list)
-    {
-      h->handleMsg(raw_msg);
+      msg_handler_map_[msg_id]->push_back(msg_handler);
     }
   }
 }
 
+/**
+ * Dispatches raw messages to plugins for decoding.
+ */
+void MessageHandler::handleMessage(Oem7RawMessageIf::ConstPtr raw_msg)
+{
+  MessageHandlerMap::iterator itr = msg_handler_map_.find(raw_msg->getMessageId());
+  if (itr == msg_handler_map_.end())
+  {
+    ROS_DEBUG_STREAM("No handler for message ID= " << raw_msg->getMessageId());
+    return;
+  }
+
+  MessageHandlerListPtr& msg_handler_list = itr->second;
+  for (auto& h : *msg_handler_list)
+  {
+    h->handleMsg(raw_msg);
+  }
+}
+}  // namespace novatel_oem7_driver

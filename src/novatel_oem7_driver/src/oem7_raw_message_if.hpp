@@ -32,37 +32,38 @@
 
 namespace novatel_oem7
 {
-  class Oem7RawMessageIf
+class Oem7RawMessageIf
+{
+public:
+  typedef boost::shared_ptr<const Oem7RawMessageIf> ConstPtr;
+
+  enum Oem7MessageType
   {
-    public:
-
-      typedef boost::shared_ptr<const Oem7RawMessageIf> ConstPtr;
-
-      enum Oem7MessageType
-      {
-        OEM7MSGTYPE_UNKNOWN,
-        OEM7MSGTYPE_LOG,
-        OEM7MSGTYPE_RSP,
-        OOEM7MSGTYPE_CMD
-      };
-
-      enum Oem7MessageFormat
-      {
-        OEM7MSGFMT_UNKNOWN,
-        OEM7MSGFMT_BINARY,
-        OEM7MSGFMT_SHORTBINARY,
-        OEM7MSGFMT_ASCII,
-        OEM7MSGFMT_ABASCII
-      };
-
-      virtual ~Oem7RawMessageIf(){}
-
-      virtual Oem7MessageType            getMessageType()              const = 0;
-      virtual Oem7MessageFormat          getMessageFormat()            const = 0;
-      virtual int                        getMessageId()                const = 0;
-      virtual const uint8_t*             getMessageData(size_t offset) const = 0;
-      virtual size_t                     getMessageDataLength()        const = 0;
+    OEM7MSGTYPE_UNKNOWN,
+    OEM7MSGTYPE_LOG,
+    OEM7MSGTYPE_RSP,
+    OOEM7MSGTYPE_CMD
   };
-}
+
+  enum Oem7MessageFormat
+  {
+    OEM7MSGFMT_UNKNOWN,
+    OEM7MSGFMT_BINARY,
+    OEM7MSGFMT_SHORTBINARY,
+    OEM7MSGFMT_ASCII,
+    OEM7MSGFMT_ABASCII
+  };
+
+  virtual ~Oem7RawMessageIf()
+  {
+  }
+
+  virtual Oem7MessageType getMessageType() const = 0;
+  virtual Oem7MessageFormat getMessageFormat() const = 0;
+  virtual int getMessageId() const = 0;
+  virtual const uint8_t* getMessageData(size_t offset) const = 0;
+  virtual size_t getMessageDataLength() const = 0;
+};
+}  // namespace novatel_oem7
 
 #endif

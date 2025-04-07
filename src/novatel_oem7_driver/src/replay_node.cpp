@@ -1,7 +1,8 @@
 #include <ros/ros.h>
 #include "novatel_oem7_driver/replayer.hpp"
 
-int main(int argc, char* argv[0]) {
+int main(int argc, char* argv[0])
+{
   using namespace novatel_oem7_driver;
 
   ros::init(argc, argv, "cpt7_replay_node");

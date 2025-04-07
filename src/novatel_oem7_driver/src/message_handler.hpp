@@ -40,25 +40,25 @@ using novatel_oem7::Oem7RawMessageIf;
 
 namespace novatel_oem7_driver
 {
-  /**
-   * Encapsulates a collection of message handling plugins, where a message
-   * a messages is handled by 0 or more plugins, matching the message on ID.
-   */
-  class MessageHandler
-  {
-    pluginlib::ClassLoader<novatel_oem7_driver::Oem7MessageHandlerIf> msg_handler_loader_; ///< Plugin loader
+/**
+ * Encapsulates a collection of message handling plugins, where a message
+ * a messages is handled by 0 or more plugins, matching the message on ID.
+ */
+class MessageHandler
+{
+  pluginlib::ClassLoader<novatel_oem7_driver::Oem7MessageHandlerIf> msg_handler_loader_;  ///< Plugin loader
 
-    typedef boost::shared_ptr<novatel_oem7_driver::Oem7MessageHandlerIf> MessageHandlerShPtr;
-    typedef std::list<MessageHandlerShPtr> MsgHandlerList;
-    typedef boost::scoped_ptr<MsgHandlerList> MessageHandlerListPtr;
-    typedef std::map<int, MessageHandlerListPtr> MessageHandlerMap;
-    MessageHandlerMap msg_handler_map_; ///< Dispatch map for raw messages.
+  typedef boost::shared_ptr<novatel_oem7_driver::Oem7MessageHandlerIf> MessageHandlerShPtr;
+  typedef std::list<MessageHandlerShPtr> MsgHandlerList;
+  typedef boost::scoped_ptr<MsgHandlerList> MessageHandlerListPtr;
+  typedef std::map<int, MessageHandlerListPtr> MessageHandlerMap;
+  MessageHandlerMap msg_handler_map_;  ///< Dispatch map for raw messages.
 
-  public:
-    MessageHandler(ros::NodeHandle& nh);
+public:
+  MessageHandler(ros::NodeHandle& nh);
 
-    void handleMessage(Oem7RawMessageIf::ConstPtr raw_msg);
-  };
-}
+  void handleMessage(Oem7RawMessageIf::ConstPtr raw_msg);
+};
+}  // namespace novatel_oem7_driver
 
 #endif

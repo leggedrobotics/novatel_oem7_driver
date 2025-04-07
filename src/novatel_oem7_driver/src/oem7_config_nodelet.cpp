@@ -31,128 +31,127 @@
 
 namespace
 {
-
-   /**
-    * @return true if the string has the specified prefix
-    */
-   bool isPrefix(const std::string& prefix, const std::string& str)
-   {
-      auto const diff_pos = std::mismatch(prefix.begin(), prefix.end(), str.begin());
-      return diff_pos.first == prefix.end();
-   }
-
+/**
+ * @return true if the string has the specified prefix
+ */
+bool isPrefix(const std::string& prefix, const std::string& str)
+{
+  auto const diff_pos = std::mismatch(prefix.begin(), prefix.end(), str.begin());
+  return diff_pos.first == prefix.end();
 }
+
+}  // namespace
 
 namespace novatel_oem7_driver
 {
+/**
+ * Nodelet which configures Oem7 receiver.
+ * Sends Oem7 commands using 'Oem7Cmd' service. The commands are obtained from Global parameters.
+ *
+ */
+class Oem7ConfigNodelet : public nodelet::Nodelet
+{
+  ros::Timer serviceCbTimer_; /**< Timer used to execute main service callback. */
+  ros::ServiceClient client_; /** Oem7Cmd service */
+
+public:
   /**
-   * Nodelet which configures Oem7 receiver.
-   * Sends Oem7 commands using 'Oem7Cmd' service. The commands are obtained from Global parameters.
-   *
+   * Initializes the Config nodelet: Connects to Oem7 Cmd service and launches the configuration.
    */
-  class Oem7ConfigNodelet : public nodelet::Nodelet
+  void onInit()
   {
-    ros::Timer serviceCbTimer_; /**< Timer used to execute main service callback. */
-    ros::ServiceClient client_; /** Oem7Cmd service */
+    NODELET_INFO_STREAM(getName() << ": Oem7ConfigNodelet v." << novatel_oem7_driver_VERSION << "; " << __DATE__ << " "
+                                  << __TIME__);
 
-  public:
+    client_ = getNodeHandle().serviceClient<novatel_oem7_msgs::Oem7AbasciiCmd>("Oem7Cmd");
 
-      /**
-       * Initializes the Config nodelet: Connects to Oem7 Cmd service and launches the configuration.
-       */
-      void onInit()
+    serviceCbTimer_ = getNodeHandle().createTimer(ros::Duration(0.0), &Oem7ConfigNodelet::serviceLoopCb, this, true);
+  }
+
+  /**
+   * Service loop, obtains and sends the configuration commands sequentially, waiting for a response from a previous
+   * command before sending the next one.
+   */
+  void serviceLoopCb(const ros::TimerEvent& event)
+  {
+    client_.waitForExistence();
+
+    std::vector<std::string> receiver_init_commands;
+    getNodeHandle().getParam("receiver_init_commands", receiver_init_commands);
+    for (const auto& cmd : receiver_init_commands)
+    {
+      issueConfigCmd(cmd);
+    }
+
+    NODELET_INFO_STREAM("Oem7 extended initialization commands:");
+
+    std::vector<std::string> receiver_ext_init_commands;
+    getNodeHandle().getParam("receiver_ext_init_commands", receiver_ext_init_commands);
+    for (const auto& cmd : receiver_ext_init_commands)
+    {
+      issueConfigCmd(cmd);
+    }
+
+    NODELET_INFO_STREAM("Oem7 configuration completed.");
+    client_.shutdown();
+  }
+
+  /**
+   * Executes Driver-specific command, like PAUSE.
+   *
+   * @return true when the provided command is a recongized internal command.
+   */
+  bool executeInternalCommand(const std::string& cmd)
+  {
+    static const std::string CMD_PAUSE("!PAUSE");
+    if (isPrefix(CMD_PAUSE, cmd))
+    {
+      std::stringstream ss(cmd);
+      std::string token;
+      ss >> token;  // Prefix
+      ss >> token;  // Period
+      int pause_period_sec = 0;
+      if (std::stringstream(token) >> pause_period_sec)
       {
-        NODELET_INFO_STREAM(getName() << ": Oem7ConfigNodelet v." << novatel_oem7_driver_VERSION << "; "
-                                      << __DATE__ << " " << __TIME__);
-
-        client_ = getNodeHandle().serviceClient<novatel_oem7_msgs::Oem7AbasciiCmd>("Oem7Cmd");
-
-        serviceCbTimer_ = getNodeHandle().createTimer(ros::Duration(0.0), &Oem7ConfigNodelet::serviceLoopCb, this, true);
+        ROS_INFO_STREAM("Sleeping for " << pause_period_sec << " seconds....");
+        ros::Duration(pause_period_sec).sleep();
+        ROS_INFO_STREAM("... done sleeping.");
+      }
+      else
+      {
+        ROS_ERROR_STREAM("Invalid Driver command syntax: '" << cmd << "'");
       }
 
-      /**
-       * Service loop, obtains and sends the configuration commands sequentially, waiting for a response from a previous command before sending the next one.
-       */
-      void serviceLoopCb(const ros::TimerEvent& event)
+      return true;
+    }
+    else  // Not a recognized internal command
+    {
+      return false;
+    }
+  }
+
+  /**
+   * Issues Oem7 configuration command
+   */
+  void issueConfigCmd(const std::string& cmd /**< The command to issue */)
+  {
+    if (!executeInternalCommand(cmd))
+    {
+      novatel_oem7_msgs::Oem7AbasciiCmd oem7_cmd;
+      oem7_cmd.request.cmd = cmd;
+
+      if (client_.call(oem7_cmd))  // BLOCKS with no timeout.
       {
-        client_.waitForExistence();
-
-        std::vector<std::string> receiver_init_commands;
-        getNodeHandle().getParam("receiver_init_commands", receiver_init_commands);
-        for(const auto& cmd : receiver_init_commands)
-        {
-          issueConfigCmd(cmd);
-        }
-
-        NODELET_INFO_STREAM("Oem7 extended initialization commands:");
-
-        std::vector<std::string> receiver_ext_init_commands;
-        getNodeHandle().getParam("receiver_ext_init_commands", receiver_ext_init_commands);
-        for(const auto& cmd : receiver_ext_init_commands)
-        {
-          issueConfigCmd(cmd);
-        }
-
-        NODELET_INFO_STREAM("Oem7 configuration completed.");
-        client_.shutdown();
+        NODELET_DEBUG_STREAM("Config: '" << cmd << "' : Rsp: '" << oem7_cmd.response.rsp << "'");
       }
-
-      /**
-       * Executes Driver-specific command, like PAUSE.
-       *
-       * @return true when the provided command is a recongized internal command.
-       */
-      bool executeInternalCommand(const std::string& cmd)
+      else
       {
-        static const std::string CMD_PAUSE("!PAUSE");
-   	if(isPrefix(CMD_PAUSE, cmd))
-        {
-           std::stringstream ss(cmd);
-           std::string token;
-           ss >> token; // Prefix
-           ss >> token; // Period
-           int pause_period_sec = 0;
-           if(std::stringstream(token) >> pause_period_sec)
-           {
-	      ROS_INFO_STREAM("Sleeping for " << pause_period_sec << " seconds....");
-              ros::Duration(pause_period_sec).sleep();
-              ROS_INFO_STREAM("... done sleeping.");
-           }
-           else
-           {
-              ROS_ERROR_STREAM("Invalid Driver command syntax: '" << cmd << "'");
-           }
-
-           return true;
-        }
-	else // Not a recognized internal command
-        {
-           return false;
-        }
+        NODELET_ERROR_STREAM("Config '" << cmd << "' not executed.");
       }
-
-      /**
-       * Issues Oem7 configuration command
-       */
-      void issueConfigCmd(const std::string& cmd /**< The command to issue */)
-      {
-        if(!executeInternalCommand(cmd))
-        {
-           novatel_oem7_msgs::Oem7AbasciiCmd oem7_cmd;
-           oem7_cmd.request.cmd = cmd;
-
-           if(client_.call(oem7_cmd)) // BLOCKS with no timeout.
-           {
-              NODELET_DEBUG_STREAM("Config: '" <<  cmd << "' : Rsp: '" << oem7_cmd.response.rsp << "'");
-           }
-           else
-           {
-              NODELET_ERROR_STREAM("Config '" << cmd << "' not executed.");
-           }
-        }
-      }
-  };
-}
+    }
+  }
+};
+}  // namespace novatel_oem7_driver
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(novatel_oem7_driver::Oem7ConfigNodelet, nodelet::Nodelet);

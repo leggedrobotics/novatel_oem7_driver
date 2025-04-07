@@ -25,25 +25,21 @@
 #ifndef __OEM7_ROS_PUBLISHER_HPP__
 #define __OEM7_ROS_PUBLISHER_HPP__
 
-
 #include <novatel_oem7_driver/ros_messages.hpp>
-
 
 namespace novatel_oem7_driver
 {
-
 /**
  * Encapsulates ROS message publisher, configured and enabled based on ROS parameters.
  */
 class Oem7RosPublisher
 {
-  ros::Publisher  ros_pub_; ///< ROS publisher
+  ros::Publisher ros_pub_;  ///< ROS publisher
 
-  std::string frame_id_; ///< Configurable frame ID.
+  std::string frame_id_;  ///< Configurable frame ID.
 
 public:
-
-  template<typename M>
+  template <typename M>
   void setup(const std::string& name, ros::NodeHandle& nh)
   {
     typedef std::map<std::string, std::string> message_config_map_t;
@@ -52,23 +48,23 @@ public:
     nh.getParam(name, message_config_map);
 
     message_config_map_t::iterator topic_itr = message_config_map.find("topic");
-    if(topic_itr == message_config_map.end())
+    if (topic_itr == message_config_map.end())
     {
       ROS_WARN_STREAM("Message '" << name << "' will not be published.");
       return;
     }
 
-    int queue_size = 100; // default size
+    int queue_size = 100;  // default size
 
-    message_config_map_t::iterator q_size_itr  = message_config_map.find("queue_size");
-    if(q_size_itr != message_config_map.end())
+    message_config_map_t::iterator q_size_itr = message_config_map.find("queue_size");
+    if (q_size_itr != message_config_map.end())
     {
       std::stringstream ss(q_size_itr->second);
       ss >> queue_size;
     }
 
-    message_config_map_t::iterator frame_id_itr  = message_config_map.find("frame_id");
-    if(frame_id_itr != message_config_map.end())
+    message_config_map_t::iterator frame_id_itr = message_config_map.find("frame_id");
+    if (frame_id_itr != message_config_map.end())
     {
       frame_id_ = frame_id_itr->second;
     }
@@ -91,7 +87,7 @@ public:
   template <typename M>
   void publish(boost::shared_ptr<M>& msg)
   {
-    if(!isEnabled())
+    if (!isEnabled())
     {
       return;
     }
@@ -99,8 +95,7 @@ public:
     SetROSHeader(frame_id_, msg);
     ros_pub_.publish(msg);
   }
-
 };
 
-}
+}  // namespace novatel_oem7_driver
 #endif

@@ -39,10 +39,11 @@
 #include <map>
 #include <chrono>
 
-namespace novatel_oem7_driver {
-
-class RosbagRangeDataProcessorRos{
- public:
+namespace novatel_oem7_driver
+{
+class RosbagRangeDataProcessorRos
+{
+public:
   RosbagRangeDataProcessorRos(ros::NodeHandlePtr nh);
   ~RosbagRangeDataProcessorRos() = default;
 
@@ -62,23 +63,21 @@ class RosbagRangeDataProcessorRos{
   {
     return std::chrono::duration_cast<std::chrono::milliseconds>(endTime_ - startTime_).count();
   }
-  
+
   inline double elapsedSeconds()
   {
-      return elapsedMilliseconds() / 1000.0;
+    return elapsedMilliseconds() / 1000.0;
   }
 
- private:
-
-  const int SECONDS_IN_WEEK = 604800;   // 7 * 24 * 60 * 60 seconds in a week
-  const int GPS_EPOCH_UNIX = 315964800; // Unix time of GPS epoch (January 6, 1980)
-  const int LEAP_SECONDS = 18;          // Difference between GPS time and UTC in seconds
-
+private:
+  const int SECONDS_IN_WEEK = 604800;    // 7 * 24 * 60 * 60 seconds in a week
+  const int GPS_EPOCH_UNIX = 315964800;  // Unix time of GPS epoch (January 6, 1980)
+  const int LEAP_SECONDS = 18;           // Difference between GPS time and UTC in seconds
 
   std::string inputRosbagName_;
   std::string outputRosbagName_;
-  std::string rosbagOutFullname_ ;
-  std::string rosbagOutFullnameTF_ ;
+  std::string rosbagOutFullname_;
+  std::string rosbagOutFullnameTF_;
   std::queue<sensor_msgs::Imu> rosIMUQueue_;
   std::queue<novatel_oem7_msgs::CORRIMU> corrIMUquque_;
 
@@ -103,7 +102,6 @@ class RosbagRangeDataProcessorRos{
   ros::Time lastFixmsgsTime_ = ros::Time(0);
   ros::Time lastGPSCommonTime_ = ros::Time(0);
 
-
   uint64_t prevSeqRosIMU_ = 0;
   uint64_t prevSeqCorrIMU_ = 0;
 
@@ -124,7 +122,6 @@ class RosbagRangeDataProcessorRos{
 
   std::chrono::time_point<std::chrono::steady_clock> startTime_;
   std::chrono::time_point<std::chrono::steady_clock> endTime_;
-
 };
 
-}
+}  // namespace novatel_oem7_driver

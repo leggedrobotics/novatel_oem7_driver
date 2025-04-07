@@ -30,37 +30,31 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio/buffer.hpp>
 
-
-
 namespace novatel_oem7
 {
-  typedef short version_element_t;
+typedef short version_element_t;
 
-  class Oem7MessageDecoderLibIf
+class Oem7MessageDecoderLibIf
+{
+public:
+  virtual ~Oem7MessageDecoderLibIf()
   {
+  }
+  virtual bool readMessage(boost::shared_ptr<Oem7RawMessageIf>&) = 0;
+};
 
-  public:
-      virtual ~Oem7MessageDecoderLibIf(){}
-      virtual bool readMessage(boost::shared_ptr<Oem7RawMessageIf>&) = 0;
-
-  };
-
-  class Oem7MessageDecoderLibUserIf
+class Oem7MessageDecoderLibUserIf
+{
+public:
+  virtual ~Oem7MessageDecoderLibUserIf()
   {
-  public:
-    virtual ~Oem7MessageDecoderLibUserIf(){}
-    virtual bool read( boost::asio::mutable_buffer, size_t&) = 0;
-  };
+  }
+  virtual bool read(boost::asio::mutable_buffer, size_t&) = 0;
+};
 
-  
-  boost::shared_ptr<Oem7MessageDecoderLibIf>
-  GetOem7MessageDecoder(Oem7MessageDecoderLibUserIf*);
+boost::shared_ptr<Oem7MessageDecoderLibIf> GetOem7MessageDecoder(Oem7MessageDecoderLibUserIf*);
 
-  void
-  GetOem7MessageDecoderLibVersion(version_element_t& major, version_element_t& minor, version_element_t& build);
-}
-
-
-
+void GetOem7MessageDecoderLibVersion(version_element_t& major, version_element_t& minor, version_element_t& build);
+}  // namespace novatel_oem7
 
 #endif
